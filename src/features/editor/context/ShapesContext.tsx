@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Shape } from '../components/shapes/Rectangle';
+import { ShapeFactory } from '../components/shapes/ShapeFactory';
 
 export interface CanvasSize {
   width: number;
@@ -16,6 +17,7 @@ export interface ViewportState {
 interface ShapesContextType {
   shapes: Shape[];
   addShape: (shape: Shape) => void;
+  updateShape: (id: string, updates: Partial<Shape>) => void;
   clearShapes: () => void;
   updateCanvasSize: (size: CanvasSize) => void;
   canvasSize: CanvasSize;
@@ -56,6 +58,16 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
 
   const addShape = (shape: Shape) => {
     setShapes((prevShapes) => [...prevShapes, shape]);
+  };
+
+  const updateShape = (id: string, updates: Partial<Shape>) => {
+    setShapes(prevShapes => 
+      prevShapes.map(shape => 
+        shape.id === id 
+          ? ShapeFactory.updateShape(shape, updates)
+          : shape
+      )
+    );
   };
 
   const clearShapes = () => {
@@ -102,7 +114,8 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
   return (
     <ShapesContext.Provider value={{ 
       shapes, 
-      addShape, 
+      addShape,
+      updateShape,
       clearShapes, 
       updateCanvasSize, 
       canvasSize,

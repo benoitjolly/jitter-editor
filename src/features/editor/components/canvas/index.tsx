@@ -5,12 +5,13 @@ import { CanvasContainer, MainCanvas, ZoomInfo } from './styles'
 import { useCanvasDrawing } from './hooks/useCanvasDrawing'
 import { useCanvasInteraction } from './hooks/useCanvasInteraction'
 import { useCanvasSetup } from './hooks/useCanvasSetup'
+import { useShapeInteraction } from './hooks/useShapeInteraction'
 
 const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const windowSize = useWindowResize();
-  const { shapes, updateCanvasSize, viewport, setZoom, setPan, resetView } = useShapes();
+  const { shapes, updateCanvasSize, viewport, setZoom, setPan, resetView, updateShape } = useShapes();
   
   const { drawCanvas } = useCanvasDrawing(shapes, viewport);
   
@@ -27,7 +28,7 @@ const Canvas: React.FC = () => {
   const {
     handleZoom,
     handleMouseDown,
-    handleMouseMove,
+    handleMouseMove: handleCanvasMove,
     handleMouseUp,
     handleDoubleClick,
     setIsDragging
@@ -38,6 +39,31 @@ const Canvas: React.FC = () => {
     resetView,
     containerRef
   });
+  
+  const { 
+    handleShapeClick,
+    handleMouseMove: handleShapeHover
+  } = useShapeInteraction({
+    shapes,
+    viewport,
+    updateShape,
+    containerRef
+  });
+  
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button === 0) {
+      handleMouseDown(e);
+      
+      if (!e.shiftKey && !e.ctrlKey && !e.altKey) {
+        handleShapeClick(e);
+      }
+    }
+  };
+  
+  const handleCombinedMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleCanvasMove(e);
+    handleShapeHover(e);
+  };
   
   useEffect(() => {
     const container = containerRef.current;
@@ -101,8 +127,8 @@ const Canvas: React.FC = () => {
   return (
     <CanvasContainer 
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
+      onMouseDown={handleCanvasMouseDown}
+      onMouseMove={handleCombinedMouseMove}
       onMouseUp={handleMouseUp}
       onDoubleClick={handleDoubleClick}
     >

@@ -1,5 +1,34 @@
-import { Rectangle } from './Rectangle';
-import type { RectangleProps } from './Rectangle';
+import { Rectangle, type Shape, type RectangleProps } from './Rectangle';
+
+interface RectangleShape extends Shape {
+  color: string;
+}
+
+export class ShapeFactory {
+  static createShape(shape: Shape): Shape {
+    if (shape.type === 'rectangle') {
+      const rectangleShape = shape as RectangleShape;
+      return new Rectangle({
+        id: shape.id,
+        x: shape.x,
+        y: shape.y,
+        width: shape.width,
+        height: shape.height,
+        color: rectangleShape.color,
+        rotation: shape.rotation
+      });
+    }
+        
+    throw new Error(`Unknown shape type: ${shape.type}`);
+  }
+  
+  static updateShape(shape: Shape, updates: Partial<Shape>): Shape {
+    return ShapeFactory.createShape({
+      ...shape,
+      ...updates
+    });
+  }
+}
 
 export const createRandomRectangle = (
   canvasWidth: number, 

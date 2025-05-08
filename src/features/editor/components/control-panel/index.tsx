@@ -9,6 +9,9 @@ const ControlPanelContainer = styled.div`
   box-shadow: ${({ theme }) => theme.shadows.small};
   padding: ${({ theme }) => theme.space.md};
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 `
 
 const PanelTitle = styled.h2`
@@ -21,12 +24,20 @@ const ControlsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.space.md};
+  flex-grow: 1;
+  height: 100%;
 `
 
 const ButtonsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.space.sm};
+`
+
+const BottomButtonsContainer = styled(ButtonsContainer)`
+  margin-top: auto;
+  padding-top: ${({ theme }) => theme.space.lg};
+  border-top: 1px solid ${({ theme }) => theme.colors.light};
 `
 
 const LoadingIndicator = styled.span`
@@ -86,13 +97,16 @@ const ControlPanel: React.FC = () => {
             Add Random Rectangle
             {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
           </Button>
+        </ButtonsContainer>
+        
+        <BottomButtonsContainer>
           <Button variant="secondary" onClick={clearShapes}>
             Clear All
           </Button>
           <Button variant="secondary" size="small" onClick={handleResetView}>
             Reset View
           </Button>
-        </ButtonsContainer>
+        </BottomButtonsContainer>
       </ControlsWrapper>
     </ControlPanelContainer>
   )
