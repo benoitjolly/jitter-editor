@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import Button from '../../../../shared/components/ui/Button'
 import { useShapes } from '../../context/ShapesContext'
+import ProjectManager from '../project-manager'
 
 const ControlPanelContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
@@ -79,9 +80,20 @@ const LoadingIndicator = styled.span`
 `
 
 const ControlPanel: React.FC = () => {
-  const { addShape, clearShapes, canvasSize, viewport, resetView, animateShapes, isAnimating } = useShapes();
+  const { 
+    addShape, 
+    clearShapes, 
+    canvasSize, 
+    viewport, 
+    resetView, 
+    animateShapes, 
+    isAnimating, 
+    currentProject,
+    animationDuration,
+    setAnimationDuration
+  } = useShapes();
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [animationDuration, setAnimationDuration] = useState(2);
   
   const handleAddRectangle = async () => {
     if (canvasSize.width === 0 || canvasSize.height === 0) {
@@ -134,6 +146,12 @@ const ControlPanel: React.FC = () => {
     <ControlPanelContainer>
       <PanelTitle>Controls</PanelTitle>
       <ControlsWrapper>
+        {currentProject && (
+          <div style={{ marginBottom: '8px' }}>
+            <small>Project: {currentProject.name}</small>
+          </div>
+        )}
+      
         <ButtonsContainer>
           <Button onClick={handleAddRectangle} disabled={isLoading || canvasSize.width === 0}>
             Add Random Rectangle
@@ -165,6 +183,8 @@ const ControlPanel: React.FC = () => {
             </Button>
           </AnimationControls>
         </AnimationSection>
+        
+        <ProjectManager />
         
         <BottomButtonsContainer>
           <Button variant="secondary" onClick={clearShapes}>

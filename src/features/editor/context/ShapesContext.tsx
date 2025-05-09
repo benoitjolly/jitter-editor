@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import type { ReactNode } from 'react';
 import type { Shape } from '../components/shapes/Rectangle';
 import { ShapeFactory } from '../components/shapes/ShapeFactory';
+import { Project } from '../models/Project';
+import { ProjectService } from '../services/ProjectService';
 
 export interface CanvasSize {
   width: number;
@@ -27,6 +29,14 @@ interface ShapesContextType {
   resetView: () => void;
   animateShapes: (durationMs: number) => void;
   isAnimating: boolean;
+  currentProject: Project | null;
+  saveProject: (name?: string) => void;
+  loadProject: (projectId: string) => void;
+  createNewProject: (name?: string) => void;
+  getAllProjects: () => Project[];
+  deleteProject: (projectId: string) => void;
+  animationDuration: number;
+  setAnimationDuration: (duration: number) => void;
 }
 
 const DEFAULT_ZOOM = 1;
@@ -54,11 +64,26 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
   const isInitialRender = useRef(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<number | null>(null);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [animationDuration, setAnimationDuration] = useState<number>(2);
   const [viewport, setViewport] = useState<ViewportState>({
     zoom: DEFAULT_ZOOM,
     panX: 0,
     panY: 0
   });
+
+  useEffect(() => {
+    const savedProject = ProjectService.getCurrentProject();
+    if (savedProject) {
+      setCurrentProject(savedProject);
+      setShapes(savedProject.shapes);
+      setViewport(savedProject.viewport);
+      setAnimationDuration(savedProject.animationDuration);
+    } else {
+      const newProject = ProjectService.createNewProject();
+      setCurrentProject(newProject);
+    }
+  }, []);
 
   const addShape = (shape: Shape) => {
     setShapes((prevShapes) => [...prevShapes, shape]);
@@ -131,6 +156,52 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
     animationRef.current = requestAnimationFrame(animate);
   };
   
+  const saveProject = (name?: string) => {
+    if (!currentProject) return;
+    
+    if (name && name.trim() !== '') {
+      currentProject.name = name.trim();
+    }
+    
+    currentProject.shapes = shapes;
+    currentProject.viewport = viewport;
+    currentProject.animationDuration = animationDuration;
+    
+    ProjectService.saveProject(currentProject);
+  };
+  
+  const loadProject = (projectId: string) => {
+    const project = ProjectService.getProjectById(projectId);
+    if (project) {
+      setCurrentProject(project);
+      setShapes(project.shapes);
+      setViewport(project.viewport);
+      setAnimationDuration(project.animationDuration);
+      
+      ProjectService.setCurrentProject(project);
+    }
+  };
+  
+  const createNewProject = (name?: string) => {
+    const newProject = ProjectService.createNewProject(name);
+    setCurrentProject(newProject);
+    setShapes([]);
+    resetView();
+  };
+  
+  const getAllProjects = () => {
+    const projectsData = ProjectService.getAllProjects();
+    return projectsData.map(data => new Project(data));
+  };
+  
+  const deleteProject = (projectId: string) => {
+    ProjectService.deleteProject(projectId);
+    
+    if (currentProject && currentProject.id === projectId) {
+      createNewProject();
+    }
+  };
+  
   useEffect(() => {
     return () => {
       if (animationRef.current) {
@@ -169,7 +240,15 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
       setPan,
       resetView,
       animateShapes,
-      isAnimating
+      isAnimating,
+      currentProject,
+      saveProject,
+      loadProject,
+      createNewProject,
+      getAllProjects,
+      deleteProject,
+      animationDuration,
+      setAnimationDuration
     }}>
       {children}
     </ShapesContext.Provider>
