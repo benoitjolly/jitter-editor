@@ -1,4 +1,4 @@
-export const APP_NAME = 'Jitter Editor'
+export const APP_NAME = 'Jitter Editor - Interactive Canvas'
 export const APP_VERSION = '0.0.0'
 
 export const DEFAULT_CANVAS_WIDTH = 800

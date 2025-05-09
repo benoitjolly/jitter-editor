@@ -40,6 +40,37 @@ const BottomButtonsContainer = styled(ButtonsContainer)`
   border-top: 1px solid ${({ theme }) => theme.colors.light};
 `
 
+const AnimationSection = styled.div`
+  margin-top: ${({ theme }) => theme.space.md};
+  border-top: 1px solid ${({ theme }) => theme.colors.light};
+  padding-top: ${({ theme }) => theme.space.md};
+`
+
+const AnimationControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.space.md};
+`
+
+const InputGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.space.xs};
+`
+
+const Label = styled.label`
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.colors.dark};
+`
+
+const Input = styled.input`
+  padding: ${({ theme }) => theme.space.xs} ${({ theme }) => theme.space.sm};
+  border: 1px solid ${({ theme }) => theme.colors.light};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
+  width: 80px;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+`
+
 const LoadingIndicator = styled.span`
   margin-left: ${({ theme }) => theme.space.sm};
   font-size: ${({ theme }) => theme.fontSizes.small};
@@ -48,8 +79,9 @@ const LoadingIndicator = styled.span`
 `
 
 const ControlPanel: React.FC = () => {
-  const { addShape, clearShapes, canvasSize, viewport, resetView } = useShapes();
+  const { addShape, clearShapes, canvasSize, viewport, resetView, animateShapes, isAnimating } = useShapes();
   const [isLoading, setIsLoading] = useState(false);
+  const [animationDuration, setAnimationDuration] = useState(2);
   
   const handleAddRectangle = async () => {
     if (canvasSize.width === 0 || canvasSize.height === 0) {
@@ -83,9 +115,19 @@ const ControlPanel: React.FC = () => {
     }
   };
   
-  
   const handleResetView = () => {
     resetView();
+  };
+  
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value > 0) {
+      setAnimationDuration(value);
+    }
+  };
+  
+  const handleAnimateClick = () => {
+    animateShapes(animationDuration * 1000);
   };
   
   return (
@@ -98,6 +140,31 @@ const ControlPanel: React.FC = () => {
             {isLoading && <LoadingIndicator>Loading...</LoadingIndicator>}
           </Button>
         </ButtonsContainer>
+        
+        <AnimationSection>
+          <Label>Animation</Label>
+          <AnimationControls>
+            <InputGroup>
+              <Label htmlFor="duration">Duration (s)</Label>
+              <Input 
+                id="duration"
+                type="number" 
+                min="0.1" 
+                max="10" 
+                step="0.1"
+                value={animationDuration} 
+                onChange={handleDurationChange} 
+              />
+            </InputGroup>
+            <Button 
+              onClick={handleAnimateClick} 
+              disabled={isAnimating || canvasSize.width === 0}
+              variant="primary"
+            >
+              {isAnimating ? 'Animating...' : 'Play Animation'}
+            </Button>
+          </AnimationControls>
+        </AnimationSection>
         
         <BottomButtonsContainer>
           <Button variant="secondary" onClick={clearShapes}>

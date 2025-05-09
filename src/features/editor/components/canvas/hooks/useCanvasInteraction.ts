@@ -22,8 +22,11 @@ export const useCanvasInteraction = ({
   
   const handleZoom = useCallback((deltaY: number, x: number, y: number) => {
     const { zoom: currentZoom } = viewport;
-    const zoomDelta = -deltaY * 0.001;
-    const newZoom = currentZoom * (1 + zoomDelta);
+    const zoomFactor = 1.03; 
+    
+    const newZoom = deltaY > 0 
+      ? currentZoom / zoomFactor 
+      : currentZoom * zoomFactor;
     
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -31,14 +34,11 @@ export const useCanvasInteraction = ({
     const mouseX = x - rect.left;
     const mouseY = y - rect.top;
     
-    const oldWorldX = (mouseX - viewport.panX) / currentZoom;
-    const oldWorldY = (mouseY - viewport.panY) / currentZoom;
+    const worldX = (mouseX - viewport.panX) / currentZoom;
+    const worldY = (mouseY - viewport.panY) / currentZoom;
     
-    const newWorldX = (mouseX - viewport.panX) / newZoom;
-    const newWorldY = (mouseY - viewport.panY) / newZoom;
-    
-    const newPanX = viewport.panX + (oldWorldX - newWorldX) * newZoom;
-    const newPanY = viewport.panY + (oldWorldY - newWorldY) * newZoom;
+    const newPanX = mouseX - worldX * newZoom;
+    const newPanY = mouseY - worldY * newZoom;
     
     setZoom(newZoom);
     setPan(newPanX, newPanY);

@@ -25,6 +25,8 @@ interface ShapesContextType {
   setZoom: (zoom: number) => void;
   setPan: (x: number, y: number) => void;
   resetView: () => void;
+  animateShapes: (durationMs: number) => void;
+  isAnimating: boolean;
 }
 
 const DEFAULT_ZOOM = 1;
@@ -50,6 +52,8 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
   const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 0, height: 0 });
   const prevCanvasSizeRef = useRef<CanvasSize>({ width: 0, height: 0 });
   const isInitialRender = useRef(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const animationRef = useRef<number | null>(null);
   const [viewport, setViewport] = useState<ViewportState>({
     zoom: DEFAULT_ZOOM,
     panX: 0,
@@ -94,6 +98,47 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
     setViewport({ zoom: DEFAULT_ZOOM, panX: 0, panY: 0 });
   };
 
+  const animateShapes = (durationMs: number) => {
+    if (isAnimating || shapes.length === 0) return;
+    
+    setIsAnimating(true);
+    
+    const initialRotations = shapes.map(shape => shape.rotation);
+    const startTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / durationMs, 1);
+      
+      shapes.forEach((shape, index) => {
+        const initialRotation = initialRotations[index];
+        const newRotation = initialRotation + progress * 360;
+        updateShape(shape.id, { rotation: newRotation });
+      });
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        shapes.forEach((shape, index) => {
+          const initialRotation = initialRotations[index];
+          updateShape(shape.id, { rotation: initialRotation + 360 });
+        });
+        setIsAnimating(false);
+        animationRef.current = null;
+      }
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+  };
+  
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (isInitialRender.current) {
       isInitialRender.current = false;
@@ -122,7 +167,9 @@ export const ShapesProvider: React.FC<ShapesProviderProps> = ({ children }) => {
       viewport,
       setZoom,
       setPan,
-      resetView
+      resetView,
+      animateShapes,
+      isAnimating
     }}>
       {children}
     </ShapesContext.Provider>
