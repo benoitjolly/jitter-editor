@@ -3,6 +3,7 @@ import styled from 'styled-components'
 export const CanvasContainer = styled.div`
   width: 100%;
   height: 100%;
+  min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,6 +15,10 @@ export const CanvasContainer = styled.div`
   padding: 0;
   position: relative;
   cursor: grab;
+  
+  @media (max-width: 768px) {
+    min-height: 400px;
+  }
   
   &:active {
     cursor: grabbing;

@@ -23,9 +23,11 @@ const Main = styled.main`
   gap: ${({ theme }) => theme.space.md};
   padding: ${({ theme }) => theme.space.md};
   background-color: ${({ theme }) => theme.colors.light};
+  min-height: 70vh;
 
   @media (min-width: 768px) {
     grid-template-columns: 2fr 1fr;
+    min-height: 80vh;
   }
 `
 

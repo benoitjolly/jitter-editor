@@ -142,6 +142,24 @@ const ControlPanel: React.FC = () => {
     animateShapes(animationDuration * 1000);
   };
   
+  const handleDownloadJson = () => {
+    if (!currentProject) return;
+    
+    const projectData = currentProject.toJSON();
+    const jsonString = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentProject.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
   return (
     <ControlPanelContainer>
       <PanelTitle>Controls</PanelTitle>
@@ -193,6 +211,16 @@ const ControlPanel: React.FC = () => {
           <Button variant="secondary" size="small" onClick={handleResetView}>
             Reset View
           </Button>
+          {currentProject && (
+            <Button 
+              variant="secondary" 
+              size="small" 
+              onClick={handleDownloadJson}
+              title="Download project as JSON file"
+            >
+              Download as JSON
+            </Button>
+          )}
         </BottomButtonsContainer>
       </ControlsWrapper>
     </ControlPanelContainer>
