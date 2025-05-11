@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import styled from 'styled-components'
 import Button from '../../../../shared/components/ui/Button'
 import { useShapes } from '../../context/ShapesContext'
 import ProjectManager from '../project-manager'
+import { ProjectService } from '../../services/ProjectService'
 
 const ControlPanelContainer = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
@@ -79,6 +80,10 @@ const LoadingIndicator = styled.span`
   font-style: italic;
 `
 
+const FileInput = styled.input`
+  display: none;
+`
+
 const ControlPanel: React.FC = () => {
   const { 
     addShape, 
@@ -94,6 +99,8 @@ const ControlPanel: React.FC = () => {
   } = useShapes();
   
   const [isLoading, setIsLoading] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleAddRectangle = async () => {
     if (canvasSize.width === 0 || canvasSize.height === 0) {
@@ -160,6 +167,39 @@ const ControlPanel: React.FC = () => {
     URL.revokeObjectURL(url);
   };
   
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (!content) return;
+      
+      try {
+        const importedProject = ProjectService.importProjectFromJson(content);
+        if (importedProject) {
+          window.location.reload();
+        } else {
+          alert('Le fichier JSON ne contient pas de données de projet valides.');
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'importation du projet:', error);
+        alert('Erreur lors de l\'importation du projet. Veuillez vérifier le format du fichier.');
+      }
+    };
+    
+    reader.readAsText(file);
+    
+    e.target.value = '';
+  };
+  
   return (
     <ControlPanelContainer>
       <PanelTitle>Controls</PanelTitle>
@@ -221,6 +261,20 @@ const ControlPanel: React.FC = () => {
               Download as JSON
             </Button>
           )}
+          <Button 
+            variant="secondary" 
+            size="small" 
+            onClick={handleImportClick}
+            title="Import project from JSON file"
+          >
+            Import from JSON
+          </Button>
+          <FileInput 
+            type="file" 
+            ref={fileInputRef} 
+            accept=".json" 
+            onChange={handleFileChange} 
+          />
         </BottomButtonsContainer>
       </ControlsWrapper>
     </ControlPanelContainer>

@@ -73,4 +73,20 @@ export class ProjectService {
   static createNewProject(name: string = 'Untitled Project'): Project {
     return new Project({ name });
   }
+  
+  static importProjectFromJson(jsonContent: string): Project | null {
+    try {
+      const project = Project.fromJSON(jsonContent);
+      
+      project.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+      project.updatedAt = new Date();
+      
+      this.saveProject(project);
+      
+      return project;
+    } catch (error) {
+      console.error('Failed to import project:', error);
+      return null;
+    }
+  }
 } 
