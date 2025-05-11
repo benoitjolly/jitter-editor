@@ -1,6 +1,7 @@
 # Jitter Editor
 
 Jitter Editor is a web application that allows users to create, edit, and animate geometric shapes in an interactive environment. This document details the technical architecture and system interactions.
+<img width="1464" alt="Capture d’écran 2025-05-11 à 21 59 32" src="https://github.com/user-attachments/assets/a526ca32-367a-4517-811c-60309e14b13a" />
 
 ## Table of Contents
 
